@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <map>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -144,7 +145,7 @@ class NativeModuleCache {
   // before trying to get it from the cache.
   // By contrast, an expired {weak_ptr} indicates that the native module died
   // and will soon be cleaned up from the cache.
-  std::map<Key, base::Optional<std::weak_ptr<NativeModule>>> map_;
+  std::map<Key, std::optional<std::weak_ptr<NativeModule>>> map_;
 
   base::Mutex mutex_;
 
@@ -174,7 +175,7 @@ class V8_EXPORT_PRIVATE WasmEngine {
   // asm.js module.
   MaybeHandle<AsmWasmData> SyncCompileTranslatedAsmJs(
       Isolate* isolate, ErrorThrower* thrower, ModuleWireBytes bytes,
-      Handle<Script> script,
+      DirectHandle<Script> script,
       base::Vector<const uint8_t> asm_js_offset_table_bytes,
       DirectHandle<HeapNumber> uses_bitset, LanguageMode language_mode);
   Handle<WasmModuleObject> FinalizeTranslatedAsmJs(
@@ -236,7 +237,7 @@ class V8_EXPORT_PRIVATE WasmEngine {
       base::Vector<const char> source_url);
 
   // Flushes all Liftoff code and returns the sizes of the removed
-  // (executable) code and the removed meta data.
+  // (executable) code and the removed metadata.
   std::pair<size_t, size_t> FlushLiftoffCode();
 
   // Returns the code size of all Liftoff compiled functions in all modules.
@@ -297,10 +298,6 @@ class V8_EXPORT_PRIVATE WasmEngine {
   // This is called from the foreground thread of the Isolate to log all
   // outstanding code objects (added via {LogCode}).
   void LogOutstandingCodesForIsolate(Isolate*);
-
-  // Code logging is done via a separate task per isolate. This deregisters a
-  // task after execution (or destruction because of isolate shutdown).
-  void DeregisterCodeLoggingTask(LogCodesTask*);
 
   // Create a new NativeModule. The caller is responsible for its
   // lifetime. The native module will be given some memory for code,
